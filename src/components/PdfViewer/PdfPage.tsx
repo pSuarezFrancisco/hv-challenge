@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Page } from 'react-pdf'
+import { useTheme } from '@mui/material'
 import type { DocumentPage } from '../../types/review'
 
 interface PdfPageProps {
@@ -13,6 +14,7 @@ interface PdfPageProps {
 // rasterizing), but the text layer is always requested so Cmd+F / Ctrl+F can find
 // text on pages the user hasn't scrolled to yet.
 export function PdfPage({ page, width, isHighlighted, registerRef }: PdfPageProps) {
+  const theme = useTheme()
   const wrapperRef = useRef<HTMLDivElement | null>(null)
   const [isNearViewport, setIsNearViewport] = useState(false)
 
@@ -48,7 +50,7 @@ export function PdfPage({ page, width, isHighlighted, registerRef }: PdfPageProp
       style={{
         minHeight: height,
         boxShadow: isHighlighted
-          ? '0 0 0 3px #1976d2'
+          ? `0 0 0 3px ${theme.palette.primary.main}`
           : '0 0 0 1px rgba(0, 0, 0, 0.12)',
         transition: 'box-shadow 0.3s ease',
         marginBottom: 16,
