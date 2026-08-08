@@ -18,8 +18,15 @@ const uploadedAtFormatter = new Intl.DateTimeFormat('en-US', {
 })
 
 export function ReviewHeader({ review }: ReviewHeaderProps) {
+  const isSubmitted = review.status === 'submitted'
+
   return (
-    <AppBar position="static" color="default" elevation={0} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+    <AppBar
+      position="static"
+      color="default"
+      elevation={0}
+      sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
+    >
       <Toolbar sx={{ gap: 2 }}>
         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
           <Typography variant="subtitle1" noWrap sx={{ fontWeight: 600 }}>
@@ -33,7 +40,7 @@ export function ReviewHeader({ review }: ReviewHeaderProps) {
         <Stack direction="row" spacing={1}>
           <Chip
             label={STATUS_LABEL[review.status]}
-            color={review.status === 'submitted' ? 'success' : 'primary'}
+            color={isSubmitted ? 'success' : 'primary'}
             variant="outlined"
             size="small"
           />

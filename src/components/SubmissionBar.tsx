@@ -23,7 +23,7 @@ export function SubmissionBar({ issues, status, onSubmit }: SubmissionBarProps) 
         bgcolor: 'background.paper',
       }}
     >
-      <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+      <Stack direction="row" spacing={2} sx={{ alignItems: 'stretch' }}>
         <Box sx={{ flexGrow: 1 }}>
           {isSubmitted ? (
             <Alert severity="success" sx={{ py: 0 }}>
