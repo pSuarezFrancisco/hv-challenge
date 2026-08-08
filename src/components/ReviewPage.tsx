@@ -70,7 +70,7 @@ export function ReviewPage() {
           <IssueList issues={review.issues} onIssueClick={handleIssueClick} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <PdfViewer doc={review.document} scrollRequest={scrollRequest} />
+          <PdfViewer doc={review.document} issues={review.issues} scrollRequest={scrollRequest} />
         </Box>
       </Stack>
       <SubmissionBar issues={review.issues} status={review.status} onSubmit={handleSubmit} />
