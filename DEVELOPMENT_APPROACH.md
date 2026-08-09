@@ -31,6 +31,44 @@ expensive part, and is the only thing actually virtualized, gated behind an
 viewer code was written — is what let the rest of that component be built with
 confidence instead of trial and error.
 
+A second problem, much smaller in scope but nastier to pin down, showed up later
+while adding the issue-list search bar: `position: sticky` on the search box wasn't
+sticking — it scrolled away with the rest of the sidebar instead of pinning below the
+sort toggle. This is the kind of bug where the obvious suspects (a `z-index` conflict,
+an `overflow: hidden` on some ancestor) weren't it, and neither MUI's nor Chromium's
+own docs fully explain the exact failure mode. I isolated it empirically: dropped a
+raw, unstyled `<div style="position: sticky">` directly into the same scroll
+container, outside any of the app's components, to separate "is this a browser/CSS
+fact about this DOM structure" from "is this something specific to how I've built
+this." That raw element also failed to stick, which pointed at the DOM structure
+itself rather than any MUI component. From there it was a process of removing
+wrapping elements one at a time until it started working — the fix was deleting one
+unnecessary wrapping `<Box>` around the search bar (see the comment in
+`src/components/IssueList/IssueList.tsx`, "Fragment, not a wrapping Box"). The
+practical lesson, not obvious from either library's documentation: a sticky
+element's positioning is bounded by its immediate parent's box, so a wrapper that
+collapses to exactly fit its sticky child leaves that child no room to move within —
+it just scrolls normally instead of pinning.
+
+## Iterating past the acceptance criteria
+
+Once the three acceptance criteria (Cmd+F search, submit gating, blocking-reason
+messaging) were met, I asked myself honestly what a reviewer opening this page would
+actually want next, rather than stopping at "technically done." That pass added: a
+floating PDF toolbar (page-number jump, previous/next page, previous/next *page with
+an issue* — jumping straight between the pages that actually need attention — and
+zoom in/out/reset); a search box scoped to the issue list itself (distinct from the
+PDF's native Cmd+F); sticky severity-section headers so a long Critical or Major list
+never scrolls its own label out of view; a PDF-centering fix so narrower pages don't
+render flush against the left edge; and a restrained visual pass on the header and
+submission bar using HomeVision's actual brand purple (`#4f46e5`, taken from their
+real stylesheet) — kept strictly functional (buttons, the status chip, focus states,
+toolbar badges), never as decorative surface color. Two earlier, more heavily
+branded versions of that last piece (a full custom theme with swapped fonts and a
+gradient AppBar; later, just a gradient accent strip) were built and then reverted
+after actually looking at them live — MUI's default look is tuned as a system, and
+partially swapping pieces out of it read as less polished, not more.
+
 ## Judgment calls worth naming
 
 A few decisions were deliberately *not* obvious defaults, and I'd defend each one

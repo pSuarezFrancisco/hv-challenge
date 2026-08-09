@@ -38,9 +38,15 @@ a real loading state instead of rendering synchronously.
   section header. Critical and Major are always fully visible; Minor is a
   collapsible section (expanded by default) so it can be tucked away without risking
   losing track of what's actually blocking submission. A toggle switches the whole
-  list between this grouped view and a flat view sorted by page number.
+  list between this grouped view and a flat view sorted by page number. Severity
+  section headers stay pinned while scrolling a long section, and a search box
+  (scoped to the issue list, separate from the PDF's own search below) filters the
+  list by title/description.
 - Clicking an issue scrolls the PDF to that issue's page, briefly highlights it, and
   moves keyboard/screen-reader focus there too — not just the visual scroll.
+- A floating toolbar over the PDF gives page-number entry, previous/next page,
+  previous/next *page with an issue* (jumping straight between the pages that
+  actually need attention), and zoom in/out/reset.
 - Submission is blocked while any `critical` or `major` issue is present; a banner
   states exactly how many of each are blocking, with a separate, quieter line noting
   how many non-blocking minor issues also exist. `minor`-only reviews can submit.
@@ -139,7 +145,7 @@ the source PDF to be properly tagged, which is a document-authoring concern outs
 this app's control.
 
 **Performance** — The production build already surfaces a real bundle-size warning
-(pdf.js's worker is ~1MB; main bundle ~780KB / ~245KB gzipped). Lazy-loading the PDF
+(pdf.js's worker is ~1MB; main bundle 923.67KB / 281.34KB gzipped). Lazy-loading the PDF
 viewer (`React.lazy`) would keep it off the critical path. See the `// PRODUCTION:`
 comment in `PdfPage.tsx` — rendered pages are never released from memory as the user
 scrolls past them, which is fine at 34 pages but wouldn't scale to a much longer
