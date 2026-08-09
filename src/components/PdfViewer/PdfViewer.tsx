@@ -129,6 +129,7 @@ export function PdfViewer({ doc, issues, scrollRequest }: PdfViewerProps) {
   // the user looking at an arbitrary, unrelated point in the document. Instant
   // (not smooth) and skips the highlight/focus side effects of scrollToPage, since
   // this isn't a navigation action — it's just "stay where I was."
+  // oxlint-disable react-hooks/exhaustive-deps
   useLayoutEffect(() => {
     const target = pageRefs.current.get(currentPage)
     if (!target) return
@@ -137,6 +138,7 @@ export function PdfViewer({ doc, issues, scrollRequest }: PdfViewerProps) {
     // reacted to; re-running this on every currentPage change would fight normal
     // scrolling instead of only correcting for zoom-driven layout shifts.
   }, [zoomLevel])
+  // oxlint-enable react-hooks/exhaustive-deps
 
   // Deduped, page-ascending — issue navigation always follows physical document
   // order, and multiple issues sharing a page count as one stop (the sidebar shows

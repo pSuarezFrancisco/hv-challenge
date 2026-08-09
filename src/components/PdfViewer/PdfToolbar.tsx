@@ -69,95 +69,95 @@ export function PdfToolbar({
           borderRadius: 999,
         }}
       >
-      <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-        <Tooltip title="Previous page with issues">
-          <span>
-            <IconButton
-              size="small"
-              onClick={() => previousIssuePage !== undefined && onJumpToPage(previousIssuePage)}
-              disabled={previousIssuePage === undefined}
-              aria-label="Previous page with issues"
-            >
-              <Badge color="error" variant="dot" overlap="circular">
-                <SkipPreviousIcon fontSize="small" />
-              </Badge>
-            </IconButton>
-          </span>
-        </Tooltip>
-
-        <Divider orientation="vertical" flexItem sx={{ my: 0.5 }} />
-
-        <Tooltip title="Previous page">
-          <span>
-            <IconButton
-              size="small"
-              onClick={() => onJumpToPage(currentPage - 1)}
-              disabled={currentPage <= 1}
-              aria-label="Previous page"
-            >
-              <ChevronLeftIcon fontSize="small" />
-            </IconButton>
-          </span>
-        </Tooltip>
-
-        <TextField
-          value={pageInput}
-          onChange={(event) => setPageInput(event.target.value.replace(/\D/g, ''))}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') handleJump()
-          }}
-          size="small"
-          variant="outlined"
-          sx={{ width: 64 }}
-          slotProps={{
-            htmlInput: {
-              inputMode: 'numeric',
-              'aria-label': 'Go to page number',
-              style: { textAlign: 'center' },
-            },
-          }}
-        />
-        <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
-          of {pageCount}
-        </Typography>
-        <Tooltip title="Go to page">
-          <span>
-            <IconButton size="small" onClick={handleJump} aria-label="Go to page">
-              <ArrowForwardIcon fontSize="small" />
-            </IconButton>
-          </span>
-        </Tooltip>
-
-        <Tooltip title="Next page">
-          <span>
-            <IconButton
-              size="small"
-              onClick={() => onJumpToPage(currentPage + 1)}
-              disabled={currentPage >= pageCount}
-              aria-label="Next page"
-            >
-              <ChevronRightIcon fontSize="small" />
-            </IconButton>
-          </span>
-        </Tooltip>
-
-        <Divider orientation="vertical" flexItem sx={{ my: 0.5 }} />
-
-        <Tooltip title="Next page with issues">
-          <span>
-            <IconButton
-              size="small"
-              onClick={() => nextIssuePage !== undefined && onJumpToPage(nextIssuePage)}
-              disabled={nextIssuePage === undefined}
-              aria-label="Next page with issues"
-            >
-              <Badge color="error" variant="dot" overlap="circular">
-                <SkipNextIcon fontSize="small" />
-              </Badge>
-            </IconButton>
-          </span>
-        </Tooltip>
-      </Stack>
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+          <Tooltip title="Previous page with issues">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => previousIssuePage !== undefined && onJumpToPage(previousIssuePage)}
+                disabled={previousIssuePage === undefined}
+                aria-label="Previous page with issues"
+              >
+                <Badge color="error" variant="dot" overlap="circular">
+                  <SkipPreviousIcon fontSize="small" />
+                </Badge>
+              </IconButton>
+            </span>
+          </Tooltip>
+  
+          <Divider orientation="vertical" flexItem sx={{ my: 0.5 }} />
+  
+          <Tooltip title="Previous page">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => onJumpToPage(currentPage - 1)}
+                disabled={currentPage <= 1}
+                aria-label="Previous page"
+              >
+                <ChevronLeftIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+  
+          <TextField
+            value={pageInput}
+            onChange={(event) => setPageInput(event.target.value.replace(/\D/g, ''))}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') handleJump()
+            }}
+            size="small"
+            variant="outlined"
+            sx={{ width: 64 }}
+            slotProps={{
+              htmlInput: {
+                inputMode: 'numeric',
+                'aria-label': 'Go to page number',
+                style: { textAlign: 'center' },
+              },
+            }}
+          />
+          <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+            of {pageCount}
+          </Typography>
+          <Tooltip title="Go to page">
+            <span>
+              <IconButton size="small" onClick={handleJump} aria-label="Go to page">
+                <ArrowForwardIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+  
+          <Tooltip title="Next page">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => onJumpToPage(currentPage + 1)}
+                disabled={currentPage >= pageCount}
+                aria-label="Next page"
+              >
+                <ChevronRightIcon fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+  
+          <Divider orientation="vertical" flexItem sx={{ my: 0.5 }} />
+  
+          <Tooltip title="Next page with issues">
+            <span>
+              <IconButton
+                size="small"
+                onClick={() => nextIssuePage !== undefined && onJumpToPage(nextIssuePage)}
+                disabled={nextIssuePage === undefined}
+                aria-label="Next page with issues"
+              >
+                <Badge color="error" variant="dot" overlap="circular">
+                  <SkipNextIcon fontSize="small" />
+                </Badge>
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Stack>
       </Paper>
 
       <Paper
@@ -185,7 +185,7 @@ export function PdfToolbar({
             <ButtonBase
               onClick={onResetZoom}
               sx={{ px: 1, py: 0.25, borderRadius: 1, minWidth: 48 }}
-              aria-label="Reset zoom"
+              aria-label={`Reset zoom, currently ${Math.round(zoomLevel * 100)}%`}
             >
               <Typography variant="body2" color="text.secondary">
                 {Math.round(zoomLevel * 100)}%
