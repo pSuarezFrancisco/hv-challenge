@@ -13,6 +13,14 @@ const HIGHLIGHT_DURATION_MS = 1600
 const ZOOM_STEP = 0.25
 const MIN_ZOOM = 0.5
 const MAX_ZOOM = 2
+// Beyond this many pages away, jumping is instant rather than animated — the user
+// already knows where they're going, and animating past dozens of intermediate
+// pages both looks slow and permanently rasterizes pages they never meant to visit
+// (see the PRODUCTION comment on PdfPage's IntersectionObserver).
+const LONG_JUMP_PAGE_THRESHOLD = 5
+// Below this PDF-pane width, the page-nav and zoom toolbars no longer fit side by
+// side without overlapping (page-nav pill ~304px + zoom pill ~136px).
+const NARROW_VIEWER_BREAKPOINT = 640
 
 export interface PdfScrollRequest {
   page: number
@@ -35,6 +43,11 @@ export function PdfViewer({ doc, issues, scrollRequest }: PdfViewerProps) {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [zoomLevel, setZoomLevel] = useState(1)
+  const currentPageRef = useRef(currentPage)
+
+  useEffect(() => {
+    currentPageRef.current = currentPage
+  }, [currentPage])
 
   useEffect(() => {
     const el = containerRef.current
@@ -54,7 +67,12 @@ export function PdfViewer({ doc, issues, scrollRequest }: PdfViewerProps) {
     const target = pageRefs.current.get(pageNum)
     if (!target) return
 
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    // Nearby jumps (adjacent pages, a click on a nearby issue) animate smoothly;
+    // long-distance jumps go instant instead of animating past dozens of pages the
+    // user already knows they're skipping.
+    const distance = Math.abs(pageNum - currentPageRef.current)
+    const behavior: ScrollBehavior = distance > LONG_JUMP_PAGE_THRESHOLD ? 'auto' : 'smooth'
+    target.scrollIntoView({ behavior, block: 'start' })
     // Moves keyboard/screen-reader focus along with the visual scroll — without this,
     // navigating only *looks* like navigation to a sighted mouse user.
     target.focus({ preventScroll: true })
@@ -205,6 +223,7 @@ export function PdfViewer({ doc, issues, scrollRequest }: PdfViewerProps) {
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
         onResetZoom={resetZoom}
+        isNarrow={containerWidth > 0 && containerWidth < NARROW_VIEWER_BREAKPOINT}
       />
     </Box>
   )

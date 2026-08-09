@@ -19,6 +19,9 @@ interface PdfToolbarProps {
   onZoomIn: () => void
   onZoomOut: () => void
   onResetZoom: () => void
+  // Below the pane width where the page-nav and zoom pills would otherwise overlap
+  // side by side, stack the zoom pill above the page-nav pill instead.
+  isNarrow: boolean
 }
 
 export function PdfToolbar({
@@ -32,6 +35,7 @@ export function PdfToolbar({
   onZoomIn,
   onZoomOut,
   onResetZoom,
+  isNarrow,
 }: PdfToolbarProps) {
   const [pageInput, setPageInput] = useState(String(currentPage))
 
@@ -165,8 +169,9 @@ export function PdfToolbar({
         sx={{
           position: 'absolute',
           zIndex: 10,
-          bottom: 16,
-          right: 16,
+          ...(isNarrow
+            ? { bottom: 72, left: '50%', transform: 'translateX(-50%)' }
+            : { bottom: 16, right: 16 }),
           px: 1,
           py: 0.5,
           borderRadius: 999,
