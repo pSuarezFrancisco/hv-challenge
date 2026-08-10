@@ -5,14 +5,13 @@ import type { Review } from '../types/review'
 type ReviewLoadState =
   | { status: 'loading' }
   | { status: 'error'; error: Error }
-  | { status: 'success' }
+  | { status: 'success'; review: Review }
 
 // PRODUCTION: this hand-rolls what a real data-fetching library (TanStack Query,
 // RTK Query) gives for free — caching, request dedup, background refetch, and
 // invalidation after a successful submit. Worth the swap once there's a real API
 // and more than one page/component that needs this data.
 export function useReview() {
-  const [review, setReview] = useState<Review | null>(null)
   const [loadState, setLoadState] = useState<ReviewLoadState>({ status: 'loading' })
   const [retryToken, setRetryToken] = useState(0)
 
@@ -23,8 +22,7 @@ export function useReview() {
     fetchReview()
       .then((data) => {
         if (cancelled) return
-        setReview(data)
-        setLoadState({ status: 'success' })
+        setLoadState({ status: 'success', review: data })
       })
       .catch((error: unknown) => {
         if (cancelled) return
@@ -40,5 +38,11 @@ export function useReview() {
 
   const retry = useCallback(() => setRetryToken((token) => token + 1), [])
 
-  return { review, setReview, loadState, retry }
+  // Only meaningful once loaded — a no-op if called from a stale closure while
+  // loadState has since moved to 'loading' or 'error' (e.g. a retry firing mid-flight).
+  const updateReview = useCallback((updater: (review: Review) => Review) => {
+    setLoadState((prev) => (prev.status === 'success' ? { status: 'success', review: updater(prev.review) } : prev))
+  }, [])
+
+  return { loadState, retry, updateReview }
 }

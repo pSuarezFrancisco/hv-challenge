@@ -8,7 +8,7 @@ import { PdfViewer, type PdfScrollRequest } from './PdfViewer/PdfViewer'
 import type { Issue } from '../types/review'
 
 export function ReviewPage() {
-  const { review, setReview, loadState, retry } = useReview()
+  const { loadState, retry, updateReview } = useReview()
   const [scrollRequest, setScrollRequest] = useState<PdfScrollRequest | null>(null)
 
   if (loadState.status === 'loading') {
@@ -36,22 +36,14 @@ export function ReviewPage() {
     )
   }
 
-  if (!review) {
-    // status is 'success' but review hasn't landed in state on this render yet — the
-    // hook always sets both together, so this is a defensive guard, not a real path.
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
+  const { review } = loadState
 
   const handleIssueClick = (issue: Issue) => {
     setScrollRequest({ page: issue.page, token: Date.now() })
   }
 
   const handleSubmit = () => {
-    setReview((prev) => (prev ? { ...prev, status: 'submitted' } : prev))
+    updateReview((prev) => ({ ...prev, status: 'submitted' }))
   }
 
   return (
