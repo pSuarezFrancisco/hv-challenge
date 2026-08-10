@@ -26,9 +26,8 @@ interface IssueListProps {
   onIssueClick: (issue: Issue) => void
 }
 
-// The sticky search bar (below) occupies this much height — severity section
-// headers stick just beneath it (see stickyHeaderSx.top) rather than both
-// competing for top: 0, so they stack cleanly instead of overlapping.
+// Height of the sticky search bar below — severity headers stick just beneath it
+// (stickyHeaderSx.top) instead of both competing for top: 0.
 const SEARCH_BAR_HEIGHT = 65
 
 function SectionHeader({ severity, count }: { severity: IssueSeverity; count: number }) {
@@ -39,10 +38,8 @@ function SectionHeader({ severity, count }: { severity: IssueSeverity; count: nu
   )
 }
 
-// Sticky within the sidebar's own scroll container: as you scroll through a long
-// section, its header stays pinned so you never lose track of which severity
-// you're looking at — the same "CRITICAL (4)" bar just stays put instead of
-// scrolling away, and the next section's header takes over once you reach it.
+// Sticky within the sidebar's scroll container, so a section's header stays
+// pinned while scrolling through it, then the next section's header takes over.
 const stickyHeaderSx = {
   position: 'sticky' as const,
   top: SEARCH_BAR_HEIGHT,
@@ -96,9 +93,9 @@ export function IssueList({ issues, onIssueClick }: IssueListProps) {
     [issues, searchQuery],
   )
 
-  // A fresh search that turns up minor-only matches shouldn't hide behind a
-  // collapsed accordion — but this only fires when the query itself changes, so
-  // the user can still collapse it manually afterward without being fought.
+  // Auto-expands Minor on a new search so matches there aren't hidden behind a
+  // collapsed accordion. Only fires when the query changes, so the user can still
+  // collapse it manually afterward.
   useEffect(() => {
     if (searchQuery.trim() !== '') setMinorExpanded(true)
   }, [searchQuery])
@@ -113,14 +110,12 @@ export function IssueList({ issues, onIssueClick }: IssueListProps) {
     )
   }
 
-  // Sort toggle first: it's a set-once-and-forget control, so it scrolls away
-  // naturally with the rest of the content. Search sticks below it — that's the
-  // control worth adjusting mid-scroll, so it's the one that stays reachable.
+  // Sort toggle scrolls away with the content (set once, not adjusted mid-scroll).
+  // Search stays sticky below it, since that's the control worth reaching anytime.
   //
-  // Fragment, not a wrapping Box: an extra plain Box here (verified empirically,
-  // not just by inspection) silently broke the search box's position:sticky —
-  // it kept moving 1:1 with scroll instead of pinning. Removing that one extra
-  // wrapper level fixed it. Don't reintroduce a wrapper around these two blocks.
+  // Fragment, not a wrapping Box: a wrapping Box here breaks the search box's
+  // position: sticky (verified empirically) — it moves 1:1 with scroll instead of
+  // pinning. Don't reintroduce a wrapper around these two blocks.
   const controls = (
     <>
       <Box sx={{ px: 1.5, pt: 1.5, pb: 0.75, borderBottom: '1px solid', borderColor: 'divider' }}>

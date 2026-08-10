@@ -13,10 +13,9 @@ const HIGHLIGHT_DURATION_MS = 1600
 const ZOOM_STEP = 0.25
 const MIN_ZOOM = 0.5
 const MAX_ZOOM = 2
-// Beyond this many pages away, jumping is instant rather than animated — the user
-// already knows where they're going, and animating past dozens of intermediate
-// pages both looks slow and permanently rasterizes pages they never meant to visit
-// (see the PRODUCTION comment on PdfPage's IntersectionObserver).
+// Beyond this many pages away, jump instantly instead of animating — long smooth
+// scrolls rasterize every intermediate page (see PdfPage's IntersectionObserver
+// PRODUCTION comment) even though the user never intends to look at them.
 const LONG_JUMP_PAGE_THRESHOLD = 5
 // Below this PDF-pane width, the page-nav and zoom toolbars no longer fit side by
 // side without overlapping (page-nav pill ~304px + zoom pill ~136px).
@@ -60,21 +59,19 @@ export function PdfViewer({ doc, issues, scrollRequest }: PdfViewerProps) {
     return () => observer.disconnect()
   }, [])
 
-  // Shared by issue-click navigation (via the scrollRequest prop, below) and the
-  // toolbar's own page-jump control, so there's one place that knows how to
-  // scroll/highlight/focus a page rather than two divergent implementations.
+  // Shared by issue-click navigation (via scrollRequest below) and the toolbar's
+  // page-jump control, so scroll/highlight/focus logic lives in one place.
   const scrollToPage = useCallback((pageNum: number) => {
     const target = pageRefs.current.get(pageNum)
     if (!target) return
 
-    // Nearby jumps (adjacent pages, a click on a nearby issue) animate smoothly;
-    // long-distance jumps go instant instead of animating past dozens of pages the
-    // user already knows they're skipping.
+    // Nearby jumps animate smoothly; long-distance jumps go instant instead of
+    // animating past dozens of pages the user isn't actually looking at.
     const distance = Math.abs(pageNum - currentPageRef.current)
     const behavior: ScrollBehavior = distance > LONG_JUMP_PAGE_THRESHOLD ? 'auto' : 'smooth'
     target.scrollIntoView({ behavior, block: 'start' })
-    // Moves keyboard/screen-reader focus along with the visual scroll — without this,
-    // navigating only *looks* like navigation to a sighted mouse user.
+    // Moves keyboard/screen-reader focus along with the scroll, so navigation
+    // isn't purely visual.
     target.focus({ preventScroll: true })
     setHighlightedPage(pageNum)
     setCurrentPage(pageNum)
@@ -83,17 +80,14 @@ export function PdfViewer({ doc, issues, scrollRequest }: PdfViewerProps) {
     highlightTimeoutRef.current = setTimeout(() => setHighlightedPage(null), HIGHLIGHT_DURATION_MS)
   }, [])
 
-  // Tracks which page is "current" for the toolbar's page indicator and prev/next
-  // buttons — not just after a toolbar-triggered jump, but as the user scrolls
-  // manually too, so "next page" always means "next after wherever you actually are."
+  // Tracks the current page for the toolbar, including manual scrolling (not just
+  // toolbar-triggered jumps), so "next page" always means next from wherever the
+  // user actually is.
   //
-  // Recalculates on 'scrollend' rather than every 'scroll' event: scrollToPage's own
-  // immediate setCurrentPage() above already gives instant feedback on a jump/click,
-  // and a smooth-scroll animation fires many 'scroll' events while it's still mid-
-  // flight — recalculating on each of those raced against that immediate update and
-  // could momentarily show the *previous* page before settling on the right one.
-  // 'scrollend' only fires once the scroll (animated or manual) has actually settled,
-  // so there's exactly one source of truth at a time instead of two competing ones.
+  // Uses 'scrollend' instead of 'scroll': scroll fires constantly during a smooth-
+  // scroll animation and would race with scrollToPage's own immediate
+  // setCurrentPage() above, briefly showing the previous page mid-animation.
+  // scrollend only fires once the scroll has settled.
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -142,26 +136,22 @@ export function PdfViewer({ doc, issues, scrollRequest }: PdfViewerProps) {
   const zoomOut = () => setZoomLevel((z) => Math.max(MIN_ZOOM, Math.round((z - ZOOM_STEP) * 100) / 100))
   const resetZoom = () => setZoomLevel(1)
 
-  // Re-anchors the scroll position to whichever page was already in view whenever
-  // zoom changes the rendered page width — otherwise the layout shift would leave
-  // the user looking at an arbitrary, unrelated point in the document. Instant
-  // (not smooth) and skips the highlight/focus side effects of scrollToPage, since
-  // this isn't a navigation action — it's just "stay where I was."
+  // Re-anchors scroll position to the page already in view when zoom changes the
+  // rendered width, so the layout shift doesn't leave the user at an arbitrary
+  // point. Instant, and skips scrollToPage's highlight/focus side effects — this
+  // isn't navigation, just staying in place.
   // oxlint-disable react-hooks/exhaustive-deps
   useLayoutEffect(() => {
     const target = pageRefs.current.get(currentPage)
     if (!target) return
     target.scrollIntoView({ behavior: 'auto', block: 'start' })
-    // Deliberately keyed only on zoomLevel — currentPage/pageRefs are read here, not
-    // reacted to; re-running this on every currentPage change would fight normal
-    // scrolling instead of only correcting for zoom-driven layout shifts.
+    // Keyed only on zoomLevel: currentPage/pageRefs are read, not reacted to.
+    // Re-running on every currentPage change would fight normal scrolling.
   }, [zoomLevel])
   // oxlint-enable react-hooks/exhaustive-deps
 
-  // Deduped, page-ascending — issue navigation always follows physical document
-  // order, and multiple issues sharing a page count as one stop (the sidebar shows
-  // all of them once you're there; stepping through each individually would mean
-  // some "next" clicks don't visibly move you anywhere).
+  // Deduped, page-ascending: issue navigation follows document order, and
+  // multiple issues on one page count as a single stop.
   const issuePages = useMemo(
     () => [...new Set(issues.map((issue) => issue.page))].sort((a, b) => a - b),
     [issues],
@@ -178,11 +168,9 @@ export function PdfViewer({ doc, issues, scrollRequest }: PdfViewerProps) {
         ref={containerRef}
         sx={{ height: '100%', overflowY: 'auto', overflowX: 'auto', p: 2, bgcolor: 'grey.100' }}
       >
-        {/* Centers the page stack within the viewer pane — without a constrained width
-            here, each page's block-level wrapper stretches full width and the
-            narrower rendered page content sits flush-left instead of centered. Beyond
-            100% zoom, pageWidth can exceed the container's own width, at which point
-            this simply renders at its natural (wider) size and overflowX handles it. */}
+        {/* Centers the page stack — without this constrained width, each page's
+            wrapper stretches full width and narrower content sits flush-left. Beyond
+            100% zoom, pageWidth can exceed the container; overflowX handles it. */}
         <Box sx={{ maxWidth: pageWidth, mx: 'auto' }}>
           <Document
             file={doc.pdf_url}

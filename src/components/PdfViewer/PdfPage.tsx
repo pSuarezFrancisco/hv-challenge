@@ -22,10 +22,9 @@ export function PdfPage({ page, width, isHighlighted, registerRef }: PdfPageProp
     const el = wrapperRef.current
     if (!el) return
 
-    // PRODUCTION: this only ever sets isNearViewport to true, never back to false —
-    // once a page has been rasterized it stays in memory for the rest of the session.
-    // Fine at this document's 34 pages; on much longer documents this would need to
-    // release canvases that scroll far out of view, trading memory for re-render cost.
+    // PRODUCTION: isNearViewport only ever goes true, never back to false — a
+    // rasterized page stays in memory for the session. Fine at 34 pages; a much
+    // longer document would need to release canvases that scroll far out of view.
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) setIsNearViewport(true)
